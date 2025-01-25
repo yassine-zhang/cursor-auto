@@ -1,0 +1,21 @@
+{
+  "name": "cursor-monitor",
+  "module": "src/webMonitor.ts",
+  "type": "module",
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "puppeteer": "^24.1.1"
+  },
+  "scripts": {
+    "start": "bun run src/webMonitor.ts",
+    "monitor": "bun run src/webMonitor.ts",
+    "chrome:mac": "/Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome --remote-debugging-port=9222 --user-data-dir=/tmp/chrome-debug --no-first-run --no-default-browser-check",
+    "chrome:win": "\"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe\" --remote-debugging-port=9222",
+    "chrome:linux": "google-chrome --remote-debugging-port=9222"
+  }
+}
