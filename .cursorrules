@@ -1,0 +1,7 @@
+以下规则优先级高于 Settings 中的规则，然后您要和 Settings 中的规则一起遵守
+1. 本项目无需使用Vue 回复我问题；
+2. 这是一个 Bun 项目，回复我问题时，请使用 Bun 的语法；
+------------------------------------------------
+The following rules take precedence over the rules in Settings, and then you follow them along with the rules in Settings
+1. this project does not need to use Vue to reply to my question. 2. this is a Bun project, use Bun syntax when replying to my question;
+2. this is a Bun project, please use Bun syntax when replying to my question;
