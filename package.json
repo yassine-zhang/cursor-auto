@@ -3,7 +3,10 @@
   "module": "src/webMonitor.ts",
   "type": "module",
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "husky": "^8.0.0",
+    "lint-staged": "^15.4.2",
+    "prettier": "^3.4.2"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
@@ -16,6 +19,12 @@
     "monitor": "bun run src/webMonitor.ts",
     "chrome:mac": "/Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome --remote-debugging-port=9222 --user-data-dir=/tmp/chrome-debug --no-first-run --no-default-browser-check",
     "chrome:win": "\"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe\" --remote-debugging-port=9222",
-    "chrome:linux": "google-chrome --remote-debugging-port=9222"
+    "chrome:linux": "google-chrome --remote-debugging-port=9222",
+    "prepare": "husky install"
+  },
+  "lint-staged": {
+    "*.{js,cjs,mjs,md,ts,vue,json,css}": [
+      "prettier --write"
+    ]
   }
 }

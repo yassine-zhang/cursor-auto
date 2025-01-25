@@ -5,6 +5,7 @@ Cursor 成员数据监控工具，用于获取和监控设置页面的成员列�
 ## 启动步骤
 
 1. 先关闭所有 Chrome 进程
+
 ```bash
 # MacOS
 pkill -9 -a -i "Google Chrome"
@@ -14,6 +15,7 @@ taskkill /F /IM "chrome.exe"
 ```
 
 2. 启动调试模式的 Chrome
+
 ```bash
 # MacOS
 bun run chrome:mac
@@ -29,6 +31,7 @@ bun run chrome:linux
    https://www.cursor.com/settings
 
 4. 运行数据获取脚本
+
 ```bash
 bun run monitor
 ```
@@ -57,4 +60,4 @@ bun run monitor
     ]
   }
 ]
-``` 
+```
