@@ -11,11 +11,19 @@ interface MemberData {
   role: string;
 }
 
+interface TeamData {
+  team: string;
+  timestamp: string;
+  totalMembers: number;
+  members: MemberData[];
+}
+
 interface MonitorConfig {
   url: string;
   outputPath: string;
   interval: number;
   continuous: boolean;
+  team: string;
 }
 
 // 创建命令行交互接口
@@ -52,9 +60,9 @@ function getChinaTime() {
   return chinaDate.toISOString();
 }
 
-async function saveData(outputPath: string, data: any) {
+async function saveData(outputPath: string, data: TeamData) {
   try {
-    let existingData = [];
+    let existingData: TeamData[] = [];
 
     // 如果文件存在，读取现有数据
     if (existsSync(outputPath)) {
@@ -101,7 +109,7 @@ async function monitorBrowserPage(config: MonitorConfig) {
     console.log("已找到目标页面:", targetPage.url());
 
     // 定义获取数据的函数
-    async function getData(targetPage: Page) {
+    async function getData(targetPage: Page, team: string) {
       try {
         const members = await targetPage.evaluate(() => {
           const memberElements = document.querySelectorAll(
@@ -133,7 +141,8 @@ async function monitorBrowserPage(config: MonitorConfig) {
           });
         });
 
-        const output = {
+        const output: TeamData = {
+          team,
           timestamp: getChinaTime(),
           totalMembers: members.length,
           members: members,
@@ -143,7 +152,7 @@ async function monitorBrowserPage(config: MonitorConfig) {
 
         const now = new Date(Date.now() + 8 * 60 * 60 * 1000);
         console.log(
-          `数据已保存: ${now.toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" })}, 共 ${members.length} 个成员`,
+          `数据已保存: ${now.toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" })}, 团队: ${team}, 共 ${members.length} 个成员`,
         );
 
         return members.length;
@@ -168,12 +177,12 @@ async function monitorBrowserPage(config: MonitorConfig) {
 
       // 开始定时获取数据
       while (true) {
-        await getData(targetPage);
+        await getData(targetPage, config.team);
         await new Promise((resolve) => setTimeout(resolve, config.interval));
       }
     } else {
       // 单次获取模式
-      await getData(targetPage);
+      await getData(targetPage, config.team);
       console.log("正在断开浏览器连接...");
       await browser.disconnect();
       process.exit(0);
@@ -189,11 +198,18 @@ async function startMonitor() {
     const dataDir = join(process.cwd(), "data");
     await ensureDataDir(dataDir);
 
+    // 获取团队名称
+    const team = await askQuestion("请输入团队名称: ");
+    if (!team.trim()) {
+      console.log("团队名称不能为空");
+      process.exit(1);
+    }
+
     let fileName = await askQuestion(
-      "请输入要保存的文件名 (默认: members-data.json): ",
+      `请输入要保存的文件名 (默认: team-${team}-data.json): `,
     );
     if (!fileName.trim()) {
-      fileName = "members-data.json";
+      fileName = `team-${team}-data.json`;
     }
     if (!fileName.endsWith(".json")) {
       fileName += ".json";
@@ -218,9 +234,11 @@ async function startMonitor() {
       interval: intervalMs,
       outputPath: join(dataDir, fileName),
       continuous,
+      team,
     };
 
     console.log(`数据将保存到: ${config.outputPath}`);
+    console.log(`监控团队: ${team}`);
 
     const confirm = await askQuestion("是否开始执行? (y/n): ");
     if (confirm.toLowerCase() !== "y") {

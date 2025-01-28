@@ -22,7 +22,10 @@
     "chrome:win": "\"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe\" --remote-debugging-port=9222",
     "chrome:linux": "google-chrome --remote-debugging-port=9222",
     "prepare": "husky install",
-    "read:emails": "bun run src/scripts/readEmails.ts"
+    "example:read-emails": "bun run src/examples/excel/readEmails.ts",
+    "example:write-excel": "bun run src/examples/excel/writeExample.ts",
+    "example:update-excel": "bun run src/examples/excel/updateExample.ts",
+    "compare-emails": "bun run src/scripts/compareEmails.ts"
   },
   "lint-staged": {
     "*.{js,cjs,mjs,md,ts,vue,json,css}": [
