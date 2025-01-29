@@ -1,4 +1,4 @@
-import { readdir, readFile, writeFile } from "fs/promises";
+import { readdir, readFile } from "fs/promises";
 import { join } from "path";
 import { readExcelColumn } from "../utils/excelReader";
 import * as readline from "readline";
@@ -161,13 +161,26 @@ function formatEmailList(emails: string[]): void {
   console.log(separator);
 }
 
+async function writeToFile(filename: string, content: string) {
+  try {
+    const outputDir = "./data/output";
+    // 使用 Bun.write 会自动创建父目录，不需要手动创建
+    const fullPath = join(outputDir, filename);
+    await Bun.write(fullPath, content);
+    console.log(`结果已写入到文件: ${fullPath}`);
+  } catch (error) {
+    console.error(`写入文件失败: ${filename}`, error);
+  }
+}
+
 async function readJsonFiles(directory: string): Promise<UserData[]> {
   const users: UserData[] = [];
   try {
     const files = await readdir(directory);
     for (const file of files) {
       if (file.endsWith(".json")) {
-        const content = await readFile(join(directory, file), "utf-8");
+        // 使用 Bun.file().text() 读取文件
+        const content = await Bun.file(join(directory, file)).text();
         const data = JSON.parse(content) as TeamData[];
 
         // 从文件名中提取团队名称
@@ -191,15 +204,6 @@ async function readJsonFiles(directory: string): Promise<UserData[]> {
   } catch (error) {
     console.error("读取JSON文件失败:", error);
     throw error;
-  }
-}
-
-async function writeToFile(filename: string, content: string) {
-  try {
-    await writeFile(filename, content, "utf-8");
-    console.log(`结果已写入到文件: ${filename}`);
-  } catch (error) {
-    console.error(`写入文件失败: ${filename}`, error);
   }
 }
 
@@ -345,7 +349,7 @@ async function main() {
     );
 
     if (notFoundInJson.length > 0) {
-      console.log("\n以下邮箱在JSON数据中未找到:");
+      console.log("\n登记未进入团队的邮箱:");
       const separator = "=".repeat(WIDTHS.email + 20);
       console.log(separator);
       console.log(
@@ -358,7 +362,7 @@ async function main() {
       console.log(separator);
 
       // 准备写入文件的内容
-      let fileContent = "在JSON数据中未找到的邮箱:\n";
+      let fileContent = "登记未进入团队的邮箱:\n";
       fileContent += "=".repeat(80) + "\n";
       fileContent += "序号 | 邮箱 | 来源\n";
       fileContent += "=".repeat(80) + "\n";
@@ -384,11 +388,11 @@ async function main() {
       fileContent += "邮箱列表（逗号分隔）:\n";
       fileContent += notFoundInJson.join(",");
 
-      await writeToFile("not_found_in_json.txt", fileContent);
+      await writeToFile("registered_but_not_joined.txt", fileContent);
       console.log(separator);
-      console.log(`\n总计有 ${notFoundInJson.length} 个邮箱在JSON数据中未找到`);
+      console.log(`\n总计有 ${notFoundInJson.length} 个登记未进入团队的邮箱`);
     } else {
-      console.log("\n所有邮箱都在JSON数据中找到了对应记录");
+      console.log("\n所有登记的邮箱都已加入团队");
     }
 
     // 检查JSON中独有的邮箱（不在Excel表中的邮箱）
@@ -396,16 +400,16 @@ async function main() {
       (user) =>
         !allEmails.some(
           (email) => email.toLowerCase() === user.email.toLowerCase(),
-        ),
+        ) && user.role.toLowerCase() !== "admin", // 排除 Admin 账户
     );
 
     if (jsonOnlyEmails.length > 0) {
-      console.log("\nJSON数据中独有的邮箱（不在Excel表中）:");
+      console.log("\n未登记但已进入团队的邮箱（不包含Admin账户）:");
       const separator = generateSeparator();
       console.log(separator);
 
       // 准备写入文件的内容
-      let fileContent = "JSON数据中独有的邮箱（不在Excel表中）:\n";
+      let fileContent = "未登记但已进入团队的邮箱（不包含Admin账户）:\n";
       fileContent += "=".repeat(120) + "\n";
       fileContent += "序号 | 团队 | 用户名 | 邮箱 | 角色 | 最后使用时间\n";
       fileContent += "=".repeat(120) + "\n";
@@ -446,11 +450,13 @@ async function main() {
       fileContent += "邮箱列表（逗号分隔）:\n";
       fileContent += sortedJsonOnly.map((user) => user.email).join(",");
 
-      await writeToFile("json_only_emails.txt", fileContent);
+      await writeToFile("not_registered_but_joined.txt", fileContent);
       console.log(separator);
-      console.log(`\n总计有 ${jsonOnlyEmails.length} 个邮箱仅在JSON数据中存在`);
+      console.log(
+        `\n总计有 ${jsonOnlyEmails.length} 个未登记但已进入团队的邮箱`,
+      );
     } else {
-      console.log("\nJSON数据中没有独有的邮箱，所有邮箱都在Excel表中存在");
+      console.log("\n所有团队成员都已完成登记");
     }
   } catch (error) {
     console.error("程序执行失败:", error);
